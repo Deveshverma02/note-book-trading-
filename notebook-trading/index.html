@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Note Book Trading - Advanced Stock Platform</title>
+<style>
+  /* Reset & base */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  a {
+    color: #03a9f4;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Header */
+  header {
+    padding: 1rem 2rem;
+    background: linear-gradient(90deg, #0077cc, #00c6ff);
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    user-select: none;
+    letter-spacing: 0.1em;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #user-info {
+    font-size: 1rem;
+    font-weight: 600;
+    user-select: none;
+  }
+  #logout-btn {
+    background: #f44336;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.4rem 1rem;
+    transition: background 0.3s;
+  }
+  #logout-btn:hover {
+    background: #c0392b;
+  }
+
+  /* Layout */
+  main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  nav.sidebar {
+    width: 220px;
+    background: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #333;
+  }
+  nav.sidebar button {
+    background: none;
+    border: none;
+    color: #bbb;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    transition: background 0.2s, border-left-color 0.3s;
+    user-select: none;
+  }
+  nav.sidebar button:hover {
+    background: #222;
+  }
+  nav.sidebar button.active {
+    color: #03a9f4;
+    border-left-color: #03a9f4;
+    background: #0d3a57;
+    font-weight: 700;
+  }
+
+  section.content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #181818;
+    padding: 16px 24px;
+    overflow-y: auto;
+  }
+
+  /* Common blocks */
+  .section-header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #03a9f4;
+  }
+
+  /* Search inputs */
+  .search-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    margin-bottom: 1rem;
+    background: #222;
+    color: #eee;
+    outline: none;
+    transition: box-shadow 0.3s ease;
+  }
+  .search-input:focus {
+    box-shadow: 0 0 5px #03a9f4;
+  }
+
+  /* Table styles */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    color: #eee;
+  }
+  th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #333;
+    text-align: left;
+  }
+  th {
+    background: #222;
+    font-weight: 700;
+    user-select: none;
+  }
+  tr:hover {
+    background: #0d3a57;
+  }
+  .positive {
+    color: #4caf50;
+    font-weight: 700;
+  }
+  .negative {
+    color: #f44336;
+    font-weight: 700;
+  }
+
+  /* Portfolio summary */
+  .portfolio-summary {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #aaa;
+    margin-bottom: 1rem;
+  }
+  .portfolio-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #03a9f4;
+  }
+
+  /* Order form */
+  form.order-form {
+    background: #222;
+    padding: 1rem;
+    border-radius: 8px;
+    max-width: 400px;
+    color: #eee;
+  }
+  form.order-form label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-weight: 600;
+  }
+  form.order-form input[type="number"],
+  form.order-form input[type="text"],
+  form.order-form select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+    background: #121212;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #eee;
+    font-size: 1rem;
+  }
+  form.order-form input[type="number"]:focus,
+  form.order-form select:focus,
+  form.order-form input[type="text"]:focus {
+    border-color: #03a9f4;
+    outline: none;
+  }
+  form.order-form button {
+    background: #03a9f4;
+    color: #121212;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 100%;
+  }
+  form.order-form button:hover {
+    background: #0280d2;
+  }
+  form.order-form .message {
+    margin-top: 0.5rem;
+    font-weight: 600;
+  }
+  form.order-form .message.success {
+    color: #4caf50;
+  }
+  form.order-form .message.error {
+    color: #f44336;
+  }
+
+  /* Watchlist */
+  .watchlist-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .watchlist-item {
+    background: #222;
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 140px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #03a9f4aa;
+    transition: background 0.3s;
+  }
+  .watchlist-item:hover {
+    background: #0d3a57;
+  }
+  .watchlist-item .symbol {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+  }
+  .watchlist-item .price {
+    font-weight: 600;
+  }
+
+  /* Chart */
+  #chart-container {
+    background: #222;
+    border-radius: 8px;
+    padding: 12px;
+    flex: 1;
+    min-height: 250px;
+    margin-top: 1rem;
+  }
+  #chart {
+    width: 100%;
+    height: 250px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav.sidebar {
+      width: 100%;
+      height: auto;
+      display: flex;
+      flex-direction: row;
+      border-right: none;
+      border-bottom: 1px solid #333;
+    }
+    nav.sidebar button {
+      flex: 1;
+      text-align: center;
+      padding: 1rem 0.5rem;
+      border-left: none;
+      border-bottom: 4px solid transparent;
+    }
+    nav.sidebar button.active {
+      border-left: none;
+      border-bottom-color: #03a9f4;
+    }
+    main {
+      flex-direction: column;
+    }
+    section.content-area {
+      padding: 1rem 1rem 2rem;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<header aria-label="Application header">
+  NOTE BOOK TRADING
+  <div id="user-info" aria-live="polite">User: dev02</div>
+  <button id="logout-btn" aria-label="Logout" title="Logout">Logout</button>
+</header>
+<main>
+  <nav class="sidebar" aria-label="Main navigation">
+    <button class="active" data-tab="market" aria-controls="market" role="tab" aria-selected="true">Market</button>
+    <button data-tab="portfolio" aria-controls="portfolio" role="tab" aria-selected="false">Portfolio</button>
+    <button data-tab="orders" aria-controls="orders" role="tab" aria-selected="false">Trade</button>
+    <button data-tab="watchlist" aria-controls="watchlist" role="tab" aria-selected="false">Watchlist</button>
+  </nav>
+
+  <section class="content-area" tabindex="0">
+    <!-- Market Tab -->
+    <article id="market" role="tabpanel" aria-hidden="false">
+      <div class="section-header">Market</div>
+      <input type="search" id="market-search" placeholder="Search stock by symbol or name..." class="search-input" aria-label="Search stocks"/>
+      <table id="market-table" aria-describedby="market-description" role="grid">
+        <thead>
+          <tr>
+            <th role="columnheader">Symbol</th>
+            <th role="columnheader">Name</th>
+            <th role="columnheader">Price</th>
+            <th role="columnheader">Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Stock rows inserted dynamically -->
+        </tbody>
+      </table>
+      <div id="market-description" class="sr-only">Stock market stock list with symbol, name, current price, and change.</div>
+    </article>
+
+    <!-- Portfolio Tab -->
+    <article id="portfolio" role="tabpanel" aria-hidden="true" hidden>
+      <div class="section-header">Portfolio</div>
+      <div class="portfolio-summary" aria-live="polite">
+        Total Portfolio Value: <span class="portfolio-value" id="portfolio-total-value">₹0.00</span>
+      </div>
+      <table id="portfolio-table" aria-describedby="portfolio-description" role="grid" tabindex="0">
+        <thead>
+          <tr>
+            <th role="columnheader">Symbol</th>
+            <th role="columnheader">Shares</th>
+            <th role="columnheader">Avg. Purchase Price</th>
+            <th role="columnheader">Current Price</th>
+            <th role="columnheader">Value</th>
+            <th role="columnheader">Profit/Loss</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Portfolio rows inserted dynamically -->
+        </tbody>
+      </table>
+      <div id="portfolio-description" class="sr-only">User portfolio stocks with details and profit or loss.</div>
+    </article>
+
+    <!-- Trade Tab -->
+    <article id="orders" role="tabpanel" aria-hidden="true" hidden>
+      <div class="section-header">Trade</div>
+      <form id="order-form" class="order-form" aria-label="Place Buy or Sell order">
+        <label for="order-symbol">Stock Symbol</label>
+        <input type="text" id="order-symbol" name="order-symbol" placeholder="E.g. AAPL" required pattern="[A-Za-z0-9]{1,8}" title="Enter a valid stock symbol" autocomplete="off"/>
+        
+        <label for="order-type">Order Type</label>
+        <select id="order-type" name="order-type" required>
+          <option value="buy" selected>Buy</option>
+          <option value="sell">Sell</option>
+        </select>
+
+        <label for="order-quantity">Quantity</label>
+        <input type="number" id="order-quantity" name="order-quantity" min="1" step="1" value="1" required/>
+
+        <button type="submit">Place Order</button>
+        <div id="order-message" role="alert" aria-live="assertive" class="message"></div>
+      </form>
+    </article>
+
+    <!-- Watchlist Tab -->
+    <article id="watchlist" role="tabpanel" aria-hidden="true" hidden>
+      <div class="section-header">Watchlist</div>
+      <input type="text" id="watchlist-symbol-input" placeholder="Add symbol to watchlist (e.g. TSLA)" class="search-input" aria-label="Add stock to watchlist" autocomplete="off"/>
+      <button id="add-watchlist" style="margin-bottom:1rem; padding:0.5rem 1rem; font-weight:700; background:#03a9f4; border:none; border-radius:6px; cursor:pointer; color:#121212;">Add</button>
+      <div class="watchlist-items" id="watchlist-items" aria-live="polite" aria-relevant="additions removals"></div>
+      <div id="watchlist-empty" style="color:#666;">Your watchlist is empty.</div>
+    </article>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  // Sample stock data - symbol, name, base price (INR)
+  const stocks = [
+    { symbol: "AAPL", name: "Apple Inc.", price: 16500 },
+    { symbol: "TCS", name: "Tata Consultancy Services", price: 3400 },
+    { symbol: "RELIANCE", name: "Reliance Industries", price: 2350 },
+    { symbol: "INFY", name: "Infosys Ltd.", price: 1450 },
+    { symbol: "HDFC", name: "HDFC Bank", price: 1600 },
+    { symbol: "HDFCBANK", name: "HDFC Bank", price: 1600 },
+    { symbol: "ICICIBANK", name: "ICICI Bank", price: 1040 },
+    { symbol: "WIPRO", name: "Wipro Limited", price: 350 },
+    { symbol: "TATASTEEL", name: "Tata Steel", price: 1200 },
+    { symbol: "NESTLEIND", name: "Nestle India", price: 18000 },
+    { symbol: "TSLA", name: "Tesla Inc.", price: 69000 },
+    { symbol: "GOOGL", name: "Alphabet Inc.", price: 28000 },
+    { symbol: "MSFT", name: "Microsoft Corp.", price: 25000 },
+    { symbol: "AMZN", name: "Amazon.com Inc.", price: 33000 },
+    { symbol: "BABA", name: "Alibaba Group", price: 13000 }
+  ];
+
+  // Portfolio: symbol => { shares, avgPrice }
+  let portfolio = {
+    AAPL: { shares: 10, avgPrice: 16000 },
+    TCS: { shares: 25, avgPrice: 3200 },
+    RELIANCE: { shares: 15, avgPrice: 2100 }
+  };
+
+  // Watchlist symbols array
+  let watchlist = [];
+
+  // Prices with simulated fluctuations (updated each interval)
+  let livePrices = {};
+
+  // DOM references
+  const navButtons = document.querySelectorAll('nav.sidebar button');
+  const tabSections = document.querySelectorAll('section.content-area article');
+  const marketSearchInput = document.getElementById('market-search');
+  const marketTableBody = document.querySelector('#market-table tbody');
+  const portfolioTableBody = document.querySelector('#portfolio-table tbody');
+  const portfolioTotalValueElem = document.getElementById('portfolio-total-value');
+  const orderForm = document.getElementById('order-form');
+  const orderMessage = document.getElementById('order-message');
+  const watchlistInput = document.getElementById('watchlist-symbol-input');
+  const watchlistAddBtn = document.getElementById('add-watchlist');
+  const watchlistItemsContainer = document.getElementById('watchlist-items');
+  const watchlistEmptyMsg = document.getElementById('watchlist-empty');
+
+  const userInfo = document.getElementById('user-info');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  // Initialize live prices with base prices
+  function initLivePrices() {
+    stocks.forEach(stock => {
+      livePrices[stock.symbol] = stock.price;
+    });
+  }
+
+  // Simulate price update using random small changes
+  function simulatePriceUpdate() {
+    stocks.forEach(stock => {
+      const currentPrice = livePrices[stock.symbol];
+      const changePercent = (Math.random() * 2 - 1) * 0.01; // -1% to +1%
+      const newPrice = Math.max(5, currentPrice * (1 + changePercent));
+      livePrices[stock.symbol] = Math.round(newPrice * 100) / 100;
+    });
+  }
+
+  // Calculate price change percentage from base price
+  function getChangePercent(symbol) {
+    const basePrice = stocks.find(s => s.symbol === symbol)?.price || 0;
+    const currentPrice = livePrices[symbol] || basePrice;
+    return ((currentPrice - basePrice) / basePrice) * 100;
+  }
+
+  // Format INR currency
+  function formatINR(value) {
+    return '₹' + value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Render market table rows with optional filter
+  function renderMarketTable(filter = '') {
+    const filterText = filter.trim().toUpperCase();
+    let rowsHTML = '';
+    stocks.forEach(stock => {
+      if (filterText && !(stock.symbol.includes(filterText) || stock.name.toUpperCase().includes(filterText))) {
+        return;
+      }
+      const change = getChangePercent(stock.symbol);
+      const changeClass = change >= 0 ? 'positive' : 'negative';
+      const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
+      rowsHTML += `<tr tabindex="0" data-symbol="${stock.symbol}">
+        <td>${stock.symbol}</td>
+        <td>${stock.name}</td>
+        <td>${formatINR(livePrices[stock.symbol])}</td>
+        <td class="${changeClass}">${arrow} ${change.toFixed(2)}%</td>
+      </tr>`;
+    });
+    marketTableBody.innerHTML = rowsHTML;
+  }
+
+  // Render portfolio table
+  function renderPortfolioTable() {
+    if (!portfolio || Object.keys(portfolio).length === 0) {
+      portfolioTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#777;">No holdings in portfolio</td></tr>';
+      portfolioTotalValueElem.textContent = formatINR(0);
+      return;
+    }
+    let totalValue = 0;
+    let rowsHTML = '';
+    Object.keys(portfolio).forEach(sym => {
+      const stockData = stocks.find(s => s.symbol === sym);
+      if (!stockData) return;
+      const shares = portfolio[sym].shares;
+      const avgPrice = portfolio[sym].avgPrice;
+      const currentPrice = livePrices[sym] || avgPrice;
+      const value = shares * currentPrice;
+      const profitLoss = (currentPrice - avgPrice) * shares;
+      totalValue += value;
+      const plClass = profitLoss >= 0 ? 'positive' : 'negative';
+      rowsHTML += `<tr tabindex="0" data-symbol="${sym}">
+        <td>${sym}</td>
+        <td>${shares}</td>
+        <td>${formatINR(avgPrice)}</td>
+        <td>${formatINR(currentPrice)}</td>
+        <td>${formatINR(value)}</td>
+        <td class="${plClass}">${profitLoss >= 0 ? '+' : ''}${formatINR(profitLoss)}</td>
+      </tr>`;
+    });
+    portfolioTableBody.innerHTML = rowsHTML;
+    portfolioTotalValueElem.textContent = formatINR(totalValue);
+  }
+
+  // Render watchlist
+  function renderWatchlist() {
+    watchlistItemsContainer.innerHTML = '';
+    if (watchlist.length === 0) {
+      watchlistEmptyMsg.style.display = 'block';
+      return;
+    } else {
+      watchlistEmptyMsg.style.display = 'none';
+    }
+    watchlist.forEach(sym => {
+      const stockData = stocks.find(s => s.symbol === sym);
+      if (!stockData) return;
+      const price = livePrices[sym] || stockData.price;
+      const item = document.createElement('div');
+      item.className = 'watchlist-item';
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('role', 'button');
+      item.setAttribute('aria-label', `${sym} - ${stockData.name} - Current price ${formatINR(price)}`);
+      item.dataset.symbol = sym;
+      item.innerHTML = `
+        <div class="symbol">${sym}</div>
+        <div class="price">${formatINR(price)}</div>
+      `;
+      watchlistItemsContainer.appendChild(item);
+    });
+  }
+
+  // Switch tabs logic
+  function switchTab(newTab) {
+    navButtons.forEach(btn => {
+      const isActive = btn.dataset.tab === newTab;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    tabSections.forEach(section => {
+      const isActive = section.id === newTab;
+      section.hidden = !isActive;
+      section.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    });
+
+    if (newTab === 'market') {
+      marketSearchInput.focus();
+    } else if (newTab === 'portfolio') {
+      portfolioTableBody.parentNode.focus();
+    } else if (newTab === 'orders') {
+      orderForm['order-symbol'].focus();
+    } else if (newTab === 'watchlist') {
+      watchlistInput.focus();
+    }
+  }
+
+  // Setup event listeners
+  navButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      switchTab(button.dataset.tab);
+    });
+  });
+  marketSearchInput.addEventListener('input', (e) => {
+    renderMarketTable(e.target.value);
+  });
+  marketTableBody.addEventListener('click', (e) => {
+    const tr = e.target.closest('tr');
+    if (tr) {
+      const sym = tr.dataset.symbol;
+      if (sym) {
+        switchTab('orders');
+        orderForm['order-symbol'].value = sym;
+        orderForm['order-quantity'].value = 1;
+        orderForm['order-type'].value = 'buy';
+        orderForm['order-symbol'].focus();
+      }
+    }
+  });
+
+  // Fix buy/sell order handler to update portfolio correctly
+  orderForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const symbol = orderForm['order-symbol'].value.trim().toUpperCase();
+    const type = orderForm['order-type'].value;
+    const quantity = parseInt(orderForm['order-quantity'].value, 10);
+
+    orderMessage.textContent = '';
+    orderMessage.className = 'message';
+
+    if (!symbol || quantity <= 0) {
+      orderMessage.textContent = 'Please enter valid symbol and quantity.';
+      orderMessage.classList.add('error');
+      return;
+    }
+
+    const stock = stocks.find(s => s.symbol === symbol);
+    if (!stock) {
+      orderMessage.textContent = `Stock symbol "${symbol}" not found.`;
+      orderMessage.classList.add('error');
+      return;
+    }
+
+    const price = livePrices[symbol];
+
+    if (type === 'buy') {
+      if (portfolio.hasOwnProperty(symbol)) {
+        const holding = portfolio[symbol];
+        const newShares = holding.shares + quantity;
+        // Adjust average price weighted by shares
+        const newAvgPrice = ((holding.avgPrice * holding.shares) + (price * quantity)) / newShares;
+        portfolio[symbol] = { shares: newShares, avgPrice: newAvgPrice };
+      } else {
+        portfolio[symbol] = { shares: quantity, avgPrice: price };
+      }
+      orderMessage.textContent = `Bought ${quantity} shares of ${symbol} at ${formatINR(price)}`;
+      orderMessage.classList.add('success');
+    } else if (type === 'sell') {
+      if (!portfolio.hasOwnProperty(symbol)) {
+        orderMessage.textContent = `No holdings for ${symbol} to sell.`;
+        orderMessage.classList.add('error');
+        return;
+      }
+      const holding = portfolio[symbol];
+      if (holding.shares < quantity) {
+        orderMessage.textContent = `Insufficient shares to sell: You have ${holding.shares} shares.`;
+        orderMessage.classList.add('error');
+        return;
+      }
+      const remainingShares = holding.shares - quantity;
+      if (remainingShares === 0) {
+        delete portfolio[symbol];
+      } else {
+        portfolio[symbol] = { shares: remainingShares, avgPrice: holding.avgPrice };
+      }
+      orderMessage.textContent = `Sold ${quantity} shares of ${symbol} at ${formatINR(price)}`;
+      orderMessage.classList.add('success');
+    } else {
+      orderMessage.textContent = 'Invalid order type.';
+      orderMessage.classList.add('error');
+      return;
+    }
+
+    // Reset qty input after action
+    orderForm['order-quantity'].value = 1;
+
+    // Refresh portfolio UI
+    renderPortfolioTable();
+  });
+
+  watchlistAddBtn.addEventListener('click', () => {
+    const sym = watchlistInput.value.trim().toUpperCase();
+    if (!sym) return;
+    const stock = stocks.find(s => s.symbol === sym);
+    if (!stock) {
+      alert(`Stock symbol "${sym}" not found.`);
+      return;
+    }
+    if (!watchlist.includes(sym)) {
+      watchlist.push(sym);
+      renderWatchlist();
+    }
+    watchlistInput.value = '';
+    watchlistInput.focus();
+  });
+  watchlistItemsContainer.addEventListener('click', (e) => {
+    const item = e.target.closest('.watchlist-item');
+    if (!item) return;
+    const sym = item.dataset.symbol;
+    if (sym && confirm(`Remove ${sym} from watchlist?`)) {
+      watchlist = watchlist.filter(s => s !== sym);
+      renderWatchlist();
+    }
+  });
+  watchlistItemsContainer.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('watchlist-item')) {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    alert('Logout functionality is not implemented in this version.');
+  });
+
+  // Update UI function
+  function updateUI() {
+    renderMarketTable(marketSearchInput.value);
+    renderPortfolioTable();
+    renderWatchlist();
+  }
+
+  // Initialize app
+  function init() {
+    initLivePrices();
+    updateUI();
+    setInterval(() => {
+      simulatePriceUpdate();
+      updateUI();
+    }, 3000);
+  }
+
+  init();
+
+})();
+</script>
+</body>
+</html>
+
